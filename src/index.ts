@@ -26,6 +26,8 @@ export const requireSingle = (fullpath: string) => {
 }
 // 导入所有文件
 export const requireAll = async (options: Partial<IOptions>) => {
+  if (!options.dirname) throw new Error('dirname cannot be empty!');
+  if (!options.currentFile) throw new Error('currentFile cannot be empty!');
   const dirname = options.dirname;
   const ignore = options.ignore || DEFAULT_IGNORE_RULE;
   const files = readdirSync(dirname);

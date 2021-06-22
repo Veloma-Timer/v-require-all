@@ -1,6 +1,6 @@
 {
   "name": "v-require-all",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "导入指定目录下的模块",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,6 +8,11 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc -p ."
   },
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/Veloma-Timer/v-require-all"
+  },
+  "homepage": "https://github.com/Veloma-Timer/v-require-all",
   "author": "veloma",
   "license": "ISC",
   "devDependencies": {
