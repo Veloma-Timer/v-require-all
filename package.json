@@ -1,0 +1,19 @@
+{
+  "name": "v-require-all",
+  "version": "1.0.2",
+  "description": "导入指定目录下的模块",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc -p ."
+  },
+  "author": "veloma",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^15.12.4"
+  },
+  "dependencies": {
+    "reflect-metadata": "^0.1.13"
+  }
+}
