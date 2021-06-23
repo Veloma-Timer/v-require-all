@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.defineDecorator = exports.Module = exports.requireAllInNest = exports.readKeys = exports.mergeMap = exports.requireSingle = exports.requireAll = void 0;
+exports.defineDecorator = exports.Module = exports.requireAllInNest = exports.readKeys = exports.mergeMap = exports.requireAll = exports.requireSingle = void 0;
 require("reflect-metadata");
 const path_1 = require("path");
 const fs_1 = require("fs");
@@ -8,7 +8,18 @@ const utils_1 = require("./utils");
 const DEFAULT_IGNORE_RULE = /(^\.|^node_modules|(\.d\..*)$)/;
 const DEFULAT_FILTER = /^([^\.].*)\.(ts|js)$/;
 const DEFAULT_CURRENT_FILE = __filename;
+const requireSingle = (fullpath) => {
+    return new Promise((resolve, reject) => {
+        Promise.resolve().then(() => require(fullpath)).then(data => resolve(data))
+            .catch(error => reject(error));
+    });
+};
+exports.requireSingle = requireSingle;
 const requireAll = async (options) => {
+    if (!options.dirname)
+        throw new Error('dirname cannot be empty!');
+    if (!options.currentFile)
+        throw new Error('currentFile cannot be empty!');
     const dirname = options.dirname;
     const ignore = options.ignore || DEFAULT_IGNORE_RULE;
     const files = fs_1.readdirSync(dirname);
@@ -38,7 +49,8 @@ const requireAll = async (options) => {
         if (fs_1.statSync(fullpath).isDirectory()) {
             const subModules = await exports.requireAll({
                 dirname: fullpath,
-                ignore: ignore
+                ignore: ignore,
+                currentFile: currentFile
             });
             exports.mergeMap(modules, subModules);
         }
@@ -57,13 +69,6 @@ const requireAll = async (options) => {
     return modules;
 };
 exports.requireAll = requireAll;
-const requireSingle = (fullpath) => {
-    return new Promise((resolve, reject) => {
-        Promise.resolve().then(() => require(fullpath)).then(data => resolve(data))
-            .catch(error => reject(error));
-    });
-};
-exports.requireSingle = requireSingle;
 const mergeMap = (targetMap, subMap) => {
     for (let key of subMap.keys()) {
         targetMap.set(key, subMap.get(key));
@@ -128,28 +133,18 @@ const requireAllInNest = (options, type = 'Module') => {
 };
 exports.requireAllInNest = requireAllInNest;
 const metadataHandler = {
-    setImports: (imports, target) => Reflect.defineMetadata('imports', utils_1.toArray(imports), target),
-    setControllers: (controllers, target) => Reflect.defineMetadata('controllers', utils_1.toArray(controllers), target),
-    setProviders: (providers, target) => Reflect.defineMetadata('providers', utils_1.toArray(providers), target),
-    handler(data, target, method) {
-        const single = (value) => (value && utils_1.isPromise(value)) ? value.then(d => method(d, target)) : method(value, target);
+    setMetadata: (key, data, target) => Reflect.defineMetadata(key, utils_1.toArray(data), target),
+    handler(data, target, key) {
+        const method = this.setMetadata;
+        const single = (value) => (value && utils_1.isPromise(value)) ? value.then(d => method(key, d, target)) : method(key, value, target);
         utils_1.isArray(data) ? data.forEach(v => single(v)) : single(data);
-    },
-    imports(imports, target) {
-        this.handler(imports, target, this.setImports);
-    },
-    controllers(controllers, target) {
-        this.handler(controllers, target, this.setControllers);
-    },
-    providers(providers, target) {
-        this.handler(providers, target, this.setProviders);
     }
 };
 function Module(metadata) {
     return function (target) {
-        metadataHandler.imports(metadata.imports, target);
-        metadataHandler.controllers(metadata.controllers, target);
-        metadataHandler.providers(metadata.providers, target);
+        for (let key in metadata) {
+            metadataHandler.handler(metadata[key], target, key);
+        }
     };
 }
 exports.Module = Module;

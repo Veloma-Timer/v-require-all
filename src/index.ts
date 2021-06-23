@@ -60,7 +60,8 @@ export const requireAll = async (options: Partial<IOptions>) => {
       if (statSync(fullpath).isDirectory()) {
         const subModules = await requireAll({
           dirname: fullpath,
-          ignore: ignore
+          ignore: ignore,
+          currentFile: currentFile
         });
         mergeMap(modules, subModules);
       } else {
@@ -147,21 +148,11 @@ export const requireAllInNest = (options: Partial<IOptions>, type: 'Controller' 
 type IDepend = Promise<any> | Promise<any>[] | any[];
 type IPrototypeClass<T = any> = new (...args: any[]) => T;
 const metadataHandler = {
-  setImports: (imports: any, target: IPrototypeClass) => Reflect.defineMetadata('imports', toArray(imports), target),
-  setControllers: (controllers: any, target: IPrototypeClass) => Reflect.defineMetadata('controllers', toArray(controllers), target),
-  setProviders: (providers: any, target: IPrototypeClass) => Reflect.defineMetadata('providers', toArray(providers), target),
-  handler(data: any, target: IPrototypeClass, method: (v:any, t:IPrototypeClass) => void) {
-    const single = (value: any) => (value && isPromise(value)) ? (value as Promise<any>).then(d => method(d, target)) : method(value, target);
+  setMetadata: (key: string, data: any, target: IPrototypeClass) => Reflect.defineMetadata(key, toArray(data), target),
+  handler(data: any, target: IPrototypeClass, key: string) {
+    const method: (k: string, v:any, t:IPrototypeClass) => void = this.setMetadata;
+    const single = (value: any) => (value && isPromise(value)) ? (value as Promise<any>).then(d => method(key, d, target)) : method(key, value, target);
     isArray(data) ? (data as any[]).forEach(v => single(v)) : single(data);
-  },
-  imports(imports: IDepend, target: IPrototypeClass) {
-    this.handler(imports, target, this.setImports);
-  },
-  controllers(controllers: IDepend, target: IPrototypeClass) {
-    this.handler(controllers, target, this.setControllers);
-  },
-  providers(providers: IDepend, target: IPrototypeClass) {
-    this.handler(providers, target, this.setProviders);
   }
 }
 // 约束一下Module的参数
@@ -169,15 +160,16 @@ interface IMetadata {
   imports: IDepend;
   controllers: IDepend;
   providers: IDepend;
+  exports: IDepend;
 }
 
 // 基本算是重写@Module
 export function Module (metadata: Partial<IMetadata>) {
   return function (target: IPrototypeClass) {
 
-    metadataHandler.imports(metadata.imports, target);
-    metadataHandler.controllers(metadata.controllers, target);
-    metadataHandler.providers(metadata.providers, target);
+    for (let key in metadata) {
+      metadataHandler.handler(metadata[key], target, key);
+    }
 
   }
 }
