@@ -133,7 +133,17 @@ const requireAllInNest = (options, type = 'Module') => {
 };
 exports.requireAllInNest = requireAllInNest;
 const metadataHandler = {
-    setMetadata: (key, data, target) => Reflect.defineMetadata(key, utils_1.toArray(data), target),
+    setMetadata: (key, data, target) => {
+        const oldMetadata = Reflect.getMetadata(key, target);
+        const metadata = [];
+        if (utils_1.isArray(oldMetadata)) {
+            metadata.push(...[...oldMetadata, ...utils_1.toArray(data)]);
+        }
+        else {
+            metadata.push(...utils_1.toArray(data));
+        }
+        Reflect.defineMetadata(key, metadata, target);
+    },
     handler(data, target, key) {
         const method = this.setMetadata;
         const single = (value) => (value && utils_1.isPromise(value)) ? value.then(d => method(key, d, target)) : method(key, value, target);

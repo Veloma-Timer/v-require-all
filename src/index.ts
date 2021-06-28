@@ -148,7 +148,16 @@ export const requireAllInNest = (options: Partial<IOptions>, type: 'Controller' 
 type IDepend = Promise<any> | Promise<any>[] | any[];
 type IPrototypeClass<T = any> = new (...args: any[]) => T;
 const metadataHandler = {
-  setMetadata: (key: string, data: any, target: IPrototypeClass) => Reflect.defineMetadata(key, toArray(data), target),
+  setMetadata: (key: string, data: any, target: IPrototypeClass) => {
+    const oldMetadata = Reflect.getMetadata(key, target);
+    const metadata = [];
+    if (isArray(oldMetadata)) {
+      metadata.push(...[...oldMetadata, ...toArray(data)]);
+    } else {
+      metadata.push(...toArray(data));
+    }
+    Reflect.defineMetadata(key, metadata, target);
+  },
   handler(data: any, target: IPrototypeClass, key: string) {
     const method: (k: string, v:any, t:IPrototypeClass) => void = this.setMetadata;
     const single = (value: any) => (value && isPromise(value)) ? (value as Promise<any>).then(d => method(key, d, target)) : method(key, value, target);

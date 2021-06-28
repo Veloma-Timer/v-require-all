@@ -167,12 +167,12 @@
         "affectsGlobalScope": true
       },
       "../src/utils.ts": {
-        "version": "b5ecfdd5922ad4f4f3c0918ffd9baae68c48c5cf0d2b110fefcda1962d5776e8",
-        "signature": "aacff12b091ab8e89e44335c44b2e12933643560c562772915981a2cf5d994a3",
+        "version": "5f728e5e1fdc8fa6c2bf83898792513bb16d956916266153887f70ca8d381cb4",
+        "signature": "114ab95fbe1dc27adf72197ba044ed59393da21d11f565fb8f28b3bbe7324540",
         "affectsGlobalScope": false
       },
       "../src/index.ts": {
-        "version": "4d65eab9b7ddc6b9d6603f0b8bddce99bae97c42c443eddc3a7f0f67ca098186",
+        "version": "fba16a2408de3ee7ec7df35ccc574c317712579aebb174a62da7824709e25d48",
         "signature": "cf32c3109d6c8f381eaeb8e563b720940c183f3765ddcf85a7d4287159be4796",
         "affectsGlobalScope": false
       },
